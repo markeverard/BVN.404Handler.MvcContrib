@@ -5,8 +5,7 @@
     <version>$version$</version>
     <authors>Mark.Everard</authors>
     <owners>Mark Everard</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
-    <projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>
+    <projectUrl>https://github.com/markeverard/BVN.404Handler.MvcContrib</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>An extension to the BVN.404Handler for EPiServer 7 allowing an MVC template to be used as your 404 page, and still enable the 301 redirect and page not found suggestions feature from the BVN.404Handler component.</description>
     <copyright>Copyright 2013</copyright>
