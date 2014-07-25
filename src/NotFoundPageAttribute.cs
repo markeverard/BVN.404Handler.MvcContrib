@@ -26,28 +26,39 @@ namespace BVNetwork.FileNotFound.MvcContrib
 
             CustomRedirectHandler current = CustomRedirectHandler.Current;
             CustomRedirect redirect = current.CustomRedirects.Find(HttpUtility.HtmlEncode(urlNotFound.AbsoluteUri));
-            string oldUrl = HttpUtility.HtmlEncode(urlNotFound.PathAndQuery);
 
+            string oldUrl = HttpUtility.HtmlEncode(urlNotFound.LocalPath);
             if (redirect == null)
                 redirect = current.CustomRedirects.Find(oldUrl);
 
-            if (redirect != null)
+            if (redirect == null)
             {
-                if (redirect.State.Equals(0) && (string.Compare(redirect.NewUrl, oldUrl, StringComparison.InvariantCultureIgnoreCase) != 0))
+                if ((Configuration.Configuration.Logging == LoggerMode.On) && Upgrader.Valid)
+                    Logger.LogRequest(oldUrl, referer);
+
+                filterContext.HttpContext.Response.TrySkipIisCustomErrors = true;
+                filterContext.HttpContext.Response.StatusCode = 0x194;
+                filterContext.HttpContext.Response.Status = "404 File not found";
+            }
+            else //redirect found
+            {
+                string newurl = redirect.NewUrl;
+                if (redirect.WildCardSkipAppend) //if wildcard, replace the 'old part' of url
                 {
-                    Log.Info(string.Format("404 Custom Redirect: To: '{0}' (from: '{1}')", redirect.NewUrl, oldUrl));
-                    filterContext.Result = new RedirectResult(redirect.NewUrl, true);
-                    return;
+                    newurl = urlNotFound.LocalPath.Replace(redirect.OldUrl, redirect.NewUrl);
+                }
+
+                //always add querystring
+                newurl += urlNotFound.Query;
+
+                if (redirect.State.Equals(0) && (string.Compare(newurl, oldUrl, StringComparison.InvariantCultureIgnoreCase) != 0))
+                {
+                    Log.Info(string.Format("404 Custom Redirect: To: '{0}' (from: '{1}')", newurl, oldUrl));
+                    
+                    filterContext.Result = new RedirectResult(newurl, true);
                 }
             }
-            else if ((Configuration.Configuration.Logging == LoggerMode.On) && Upgrader.Valid)
-            {
-                Logger.LogRequest(oldUrl, referer);
-            }
-
-            filterContext.HttpContext.Response.TrySkipIisCustomErrors = true;
-            filterContext.HttpContext.Response.StatusCode = 0x194;
-            filterContext.HttpContext.Response.Status = "404 File not found";
         }
+
     }
 }
